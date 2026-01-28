@@ -1105,6 +1105,18 @@
             white-space: nowrap;
         }
 
+        .last-fetched {
+            margin-left: 10px;
+            padding: 2px 8px;
+            font-size: 11px;
+            border-radius: 10px;
+            background: rgba(16, 185, 129, 0.15);
+            color: #10b981;
+            border: 1px solid rgba(16, 185, 129, 0.3);
+            font-weight: 600;
+            white-space: nowrap;
+        }
+
 
     </style>
 </head>
@@ -1325,6 +1337,22 @@
                     "<li class='no-results'>Failed to load database data</li>";
             }
         }
+
+        function formatLastFetched(dateStr) {
+            if (!dateStr) return null;
+
+            const d = new Date(dateStr);
+            if (isNaN(d)) return null;
+
+            return d.toLocaleString(undefined, {
+                year: "numeric",
+                month: "short",
+                day: "2-digit",
+                hour: "2-digit",
+                minute: "2-digit"
+            });
+        }
+
 
         function calculateCountsFromData(root) {
             const counts = {
@@ -1578,7 +1606,19 @@
             label.textContent = node.name;
             div.appendChild(label);
 
-            // ===== 🔢 COUNTS BADGE (NEW FEATURE) =====
+            // ===== ⏱ LAST FETCHED (TABLE ONLY) =====
+            if (!isRoot && node.type === 'table') {
+                const lastFetchedText = node.lastFetched
+                    ? `⏱ ${formatLastFetched(node.lastFetched)}`
+                    : '⏱ Never fetched';
+
+                const lastFetchedBadge = document.createElement('span');
+                lastFetchedBadge.className = 'last-fetched';
+                lastFetchedBadge.textContent = lastFetchedText;
+                div.appendChild(lastFetchedBadge);
+            }
+
+            // ===== 🔢 COUNTS BADGE =====
             if (!isRoot && node.type !== 'table') {
                 const counts = calculateNodeCounts(node);
 
