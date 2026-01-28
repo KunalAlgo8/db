@@ -1,0 +1,2291 @@
+<!DOCTYPE html>
+<html lang="en">
+<head> 
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Database Hierarchy Explorer - Enterprise Edition</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: #0F1117;
+            padding: 0;
+            min-height: 100vh;
+            color: #E6EAF2;
+            overflow-x: hidden;
+        }
+
+        .container {
+            max-width: 1600px;
+            margin: 0 auto;
+            background: #0F1117;
+            min-height: 100vh;
+            box-shadow: 0 0 80px rgba(77, 163, 255, 0.1);
+        }
+
+        .header {
+            background: #0F1117;
+            border-bottom: 1px solid rgba(77, 163, 255, 0.2);
+            padding: 32px 48px;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.5);
+        }
+
+        .header-content {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            max-width: 1600px;
+            margin: 0 auto;
+        }
+
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .header-icon {
+            width: 48px;
+            height: 48px;
+            background: linear-gradient(135deg, #000000 0%, #000080 100%);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            box-shadow: 0 4px 20px rgba(77, 163, 255, 0.4);
+        }
+
+        .header-text h1 {
+            font-size: 24px;
+            font-weight: 600;
+            color: #E6EAF2;
+            margin-bottom: 4px;
+            letter-spacing: -0.5px;
+        }
+
+        .header-text p {
+            font-size: 13px;
+            color: #9AA4BF;
+            font-weight: 400;
+            letter-spacing: 0.3px;
+        }
+
+        .header-right {
+            display: flex;
+            gap: 12px;
+        }
+
+        .controls {
+            padding: 24px 48px;
+            background: #0F1117;
+            border-bottom: 1px solid #252A3A;
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border: 1px solid #252A3A;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: 500;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            font-family: 'Inter', sans-serif;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            letter-spacing: 0.2px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #000000 0%, #000080 100%);
+            color: #fff;
+            border: none;
+            box-shadow: 0 2px 8px rgba(77, 163, 255, 0.3);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 16px rgba(77, 163, 255, 0.5);
+        }
+
+        .btn-secondary {
+            background: #161A23;
+            color: #E6EAF2;
+            border: 1px solid #252A3A;
+        }
+
+        .btn-secondary:hover {
+            background: #252A3A;
+            border-color: #000000;
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, #00E5C3 0%, #059669 100%);
+            color: white;
+            border: none;
+            box-shadow: 0 2px 8px rgba(0, 229, 195, 0.3);
+        }
+
+        .btn-success:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 16px rgba(0, 229, 195, 0.5);
+        }
+
+        .search-box {
+            flex: 1;
+            min-width: 300px;
+            padding: 11px 16px 11px 44px;
+            border: 1px solid #252A3A;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            background: #161A23 url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="%239AA4BF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>') no-repeat 16px center;
+            color: #E6EAF2;
+            font-family: 'Inter', sans-serif;
+            font-weight: 400;
+        }
+
+        .search-box:focus {
+            outline: none;
+            border-color: #4DA3FF;
+            box-shadow: 0 0 0 3px rgba(77, 163, 255, 0.1);
+            background-color: #0F1117;
+        }
+
+        .search-box::placeholder {
+            color: #9AA4BF;
+        }
+
+        .search-results {
+            padding: 20px 48px;
+            background: #0F1117;
+            border-bottom: 1px solid #252A3A;
+            display: none;
+        }
+
+        .search-results.show {
+            display: block;
+        }
+
+        .search-results-header {
+            color: #4DA3FF;
+            font-weight: 500;
+            margin-bottom: 16px;
+            font-size: 13px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .search-result-item {
+            padding: 12px 16px;
+            margin: 8px 0;
+            background: #161A23;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            border: 1px solid #252A3A;
+            border-left: 3px solid #4DA3FF;
+        }
+
+        .search-result-item:hover {
+            background: rgba(77, 163, 255, 0.12);
+            border-left-width: 4px;
+            transform: translateX(4px);
+        }
+
+        .search-result-name {
+            color: #E6EAF2;
+            font-weight: 500;
+            margin-bottom: 6px;
+            font-size: 14px;
+        }
+
+        .search-result-path {
+            color: #9AA4BF;
+            font-size: 12px;
+            font-family: 'Courier New', monospace;
+        }
+
+        .path-separator {
+            margin: 0 6px;
+            color: #252A3A;
+        }
+
+        .tree-container {
+            padding: 32px 48px;
+            overflow-x: auto;
+            position: relative;
+            min-height: 400px;
+        }
+
+        .tree {
+            list-style: none;
+        }
+
+        .tree-item {
+            margin: 4px 0;
+        }
+
+        .tree-content {
+            display: flex;
+            align-items: center;
+            padding: 10px 16px;
+            cursor: pointer;
+            border-radius: 8px;
+            transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+            user-select: none;
+            position: relative;
+            border: 1px solid transparent;
+        }
+
+        .tree-content:hover {
+            background: rgba(77, 163, 255, 0.12);
+            border-color: rgba(77, 163, 255, 0.2);
+        }
+
+        .tree-content.active {
+            background: rgba(77, 163, 255, 0.15);
+            border-color: rgba(77, 163, 255, 0.3);
+            border-left: 3px solid #4DA3FF;
+        }
+
+        .tree-content.search-match {
+            background: rgba(77, 163, 255, 0.2);
+            animation: pulse 2s ease-in-out;
+            border-color: #4DA3FF;
+        }
+
+        @keyframes pulse {
+            0%, 100% { 
+                background: rgba(77, 163, 255, 0.2);
+                box-shadow: 0 0 0 0 rgba(77, 163, 255, 0.4);
+            }
+            50% { 
+                background: rgba(77, 163, 255, 0.3);
+                box-shadow: 0 0 0 8px rgba(77, 163, 255, 0);
+            }
+        }
+
+        .copy-btn {
+            width: 32px;
+            height: 32px;
+            margin-right: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: #161A23;
+            border: 1px solid #252A3A;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            font-size: 14px;
+            color: #9AA4BF;
+            flex-shrink: 0;
+        }
+
+        .copy-btn:hover {
+            background: #2F4F4F;
+            border-color: #FFFFFF;
+            color: white;
+            transform: scale(1.05);
+            box-shadow: 0 2px 8px rgba(0, 229, 195, 0.4);
+        }
+
+        .copy-btn:active {
+            transform: scale(0.95);
+        }
+
+        .copy-btn.copied {
+            background: #10b981;
+            border-color: #10b981;
+            color: white;
+        }
+
+        .copy-btn.viewing {
+            background: #4DA3FF;
+            border-color: #4DA3FF;
+            color: white;
+        }
+
+        .toggle-icon {
+            width: 20px;
+            height: 20px;
+            margin-right: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 10px;
+            color: #9AA4BF;
+            transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            flex-shrink: 0;
+        }
+
+        .toggle-icon.expanded {
+            transform: rotate(90deg);
+            color: #4DA3FF;
+        }
+
+        .icon {
+            width: 24px;
+            height: 24px;
+            margin-right: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            font-size: 18px;
+        }
+
+        .label {
+            font-size: 14px;
+            color: #E6EAF2;
+            font-weight: 500;
+            letter-spacing: 0.2px;
+        }
+
+        .type-badge {
+            margin-left: auto;
+            padding: 4px 10px;
+            border-radius: 6px;
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            border: 1px solid;
+        }
+
+        .badge-main-database {
+            background: rgba(77, 163, 255, 0.15);
+            color: #4DA3FF;
+            border-color: rgba(77, 163, 255, 0.3);
+        }
+
+        .badge-sub-database {
+            background: rgba(139, 92, 246, 0.15);
+            color: #a78bfa;
+            border-color: rgba(139, 92, 246, 0.3);
+        }
+
+        .badge-schema {
+            background: rgba(0, 229, 195, 0.15);
+            color: #00E5C3;
+            border-color: rgba(0, 229, 195, 0.3);
+        }
+
+        .badge-table {
+            background: rgba(251, 191, 36, 0.15);
+            color: #fbbf24;
+            border-color: rgba(251, 191, 36, 0.3);
+        }
+
+        .children {
+            margin-left: 32px;
+            display: none;
+            border-left: 2px solid #252A3A;
+            padding-left: 16px;
+            margin-top: 4px;
+            margin-bottom: 4px;
+        }
+
+        .children.show {
+            display: block;
+            animation: slideDown 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-8px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Inline Metadata Display */
+        .metadata-inline {
+            display: none;
+            margin: 12px 0 12px 56px;
+            padding: 20px;
+            background: linear-gradient(135deg, rgba(77, 163, 255, 0.08) 0%, rgba(0, 229, 195, 0.08) 100%);
+            border: 1px solid rgba(77, 163, 255, 0.3);
+            border-left: 4px solid #4DA3FF;
+            border-radius: 8px;
+            animation: slideDown 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .metadata-inline.show {
+            display: block;
+        }
+
+        .metadata-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 20px;
+            padding-bottom: 12px;
+            border-bottom: 2px solid rgba(77, 163, 255, 0.3);
+        }
+
+        .metadata-header-icon {
+            font-size: 24px;
+        }
+
+        .metadata-header-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #4DA3FF;
+            letter-spacing: 0.5px;
+        }
+
+        .metadata-section {
+            margin-bottom: 24px;
+        }
+
+        .metadata-section:last-child {
+            margin-bottom: 0;
+        }
+
+        .metadata-section-title {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 15px;
+            font-weight: 600;
+            color: #00E5C3;
+            margin-bottom: 12px;
+            padding-bottom: 8px;
+            border-bottom: 1px solid rgba(0, 229, 195, 0.2);
+        }
+
+        .metadata-section-icon {
+            font-size: 18px;
+        }
+
+        .metadata-row {
+            display: grid;
+            grid-template-columns: 150px 1fr;
+            gap: 12px;
+            padding: 8px 0;
+            font-size: 13px;
+        }
+
+        .metadata-label {
+            color: #9AA4BF;
+            font-weight: 500;
+        }
+
+        .metadata-value {
+            color: #E6EAF2;
+            word-break: break-word;
+        }
+
+        .metadata-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 12px;
+            font-size: 12px;
+        }
+
+        .metadata-table th {
+            background: rgba(22, 26, 35, 0.6);
+            color: #4DA3FF;
+            padding: 10px;
+            text-align: left;
+            font-weight: 600;
+            border: 1px solid #252A3A;
+        }
+
+        .metadata-table td {
+            background: rgba(15, 17, 23, 0.4);
+            color: #E6EAF2;
+            padding: 10px;
+            border: 1px solid #252A3A;
+        }
+
+        .metadata-table tr:hover td {
+            background: rgba(77, 163, 255, 0.1);
+        }
+
+        .metadata-footer {
+            margin-top: 20px;
+            padding-top: 16px;
+            border-top: 1px solid rgba(77, 163, 255, 0.2);
+            text-align: right;
+            font-size: 12px;
+            color: #9AA4BF;
+        }
+
+        /* Tooltip Styles */
+        .path-tooltip {
+            position: fixed;
+            background: #161A23;
+            color: #E6EAF2;
+            padding: 12px 16px;
+            border-radius: 8px;
+            font-size: 12px;
+            pointer-events: none;
+            z-index: 1000;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6);
+            border: 1px solid #252A3A;
+            max-width: 600px;
+            word-wrap: break-word;
+            display: none;
+            opacity: 0;
+            transition: opacity 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .path-tooltip.show {
+            display: block;
+            opacity: 1;
+        }
+
+        .path-tooltip-header {
+            font-weight: 600;
+            color: #4DA3FF;
+            margin-bottom: 8px;
+            font-size: 10px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .path-tooltip-content {
+            font-family: 'Courier New', monospace;
+            line-height: 1.6;
+            color: #00E5C3;
+            font-size: 13px;
+        }
+
+        /* Copy Notification */
+        .copy-notification {
+            position: fixed;
+            top: 24px;
+            right: 24px;
+            background: linear-gradient(135deg, #00E5C3 0%, #059669 100%);
+            color: white;
+            padding: 14px 20px;
+            border-radius: 8px;
+            box-shadow: 0 8px 32px rgba(0, 229, 195, 0.4);
+            z-index: 2000;
+            display: none;
+            align-items: center;
+            gap: 12px;
+            animation: slideIn 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            font-weight: 500;
+            font-size: 14px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .copy-notification.show {
+            display: flex;
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateX(400px);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        /* ===== SMALL STICKY STATS (TOP RIGHT) ===== */
+/* ===== FIXED TOP-RIGHT STATS BAR ===== */
+        .stats {
+            position: fixed;
+            top: 20px;
+            right: 24px;
+            display: flex;
+            gap: 12px;
+            z-index: 9999;
+        }
+
+
+        .stat-item {
+            width: 140px;          /* 🔥 SAME WIDTH FOR ALL */
+            height: 70px;          /* 🔥 SAME HEIGHT FOR ALL */
+            background: #161A23;
+            border-radius: 12px;
+            border: 1px solid #252A3A;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .stat-item:hover {
+            border-color: #4DA3FF;
+            box-shadow: 0 4px 16px rgba(77, 163, 255, 0.2);
+            transform: translateY(-2px);
+        }
+
+        .stat-value {
+            font-size: 24px;
+            font-weight: 700;
+            line-height: 1;
+            margin-bottom: 6px;
+            background: linear-gradient(135deg, #4DA3FF 0%, #00E5C3 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .stat-label {
+            font-size: 10px;
+            color: #9AA4BF;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            white-space: nowrap;   /* 🔥 PREVENT UNEQUAL HEIGHT */
+        }
+
+        .highlight {
+            background: rgba(251, 191, 36, 0.2);
+            color: #fbbf24;
+            padding: 2px 6px;
+            border-radius: 4px;
+            border: 1px solid rgba(251, 191, 36, 0.3);
+        }
+
+        .no-results {
+            text-align: center;
+            padding: 60px;
+            color: #9AA4BF;
+            font-size: 14px;
+        }
+
+        /* Modal Styles */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(15, 17, 23, 0.9);
+            backdrop-filter: blur(4px);
+            z-index: 1000;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            animation: fadeIn 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .modal-overlay.show {
+            display: flex;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .modal {
+            background: #0F1117;
+            border-radius: 16px;
+            border: 1px solid #252A3A;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.8);
+            max-width: 900px;
+            width: 90%;
+            max-height: 85vh;
+            overflow: hidden;
+            animation: slideUp 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        @keyframes slideUp {
+            from {
+                transform: translateY(40px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        .modal-header {
+            padding: 24px 32px;
+            border-bottom: 1px solid #252A3A;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: #0F1117;
+        }
+
+        .modal-title {
+            font-size: 20px;
+            font-weight: 600;
+            color: #E6EAF2;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .modal-close {
+            width: 32px;
+            height: 32px;
+            border-radius: 6px;
+            background: #161A23;
+            border: 1px solid #252A3A;
+            color: #9AA4BF;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+            font-size: 18px;
+        }
+
+        .modal-close:hover {
+            background: #252A3A;
+            color: #E6EAF2;
+        }
+
+        .modal-body {
+            padding: 24px 32px;
+            max-height: calc(85vh - 100px);
+            overflow-y: auto;
+        }
+
+        .list-item {
+            padding: 14px 16px;
+            margin: 8px 0;
+            background: #161A23;
+            border-radius: 8px;
+            border: 1px solid #252A3A;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .list-item:hover {
+            background: rgba(77, 163, 255, 0.12);
+            border-color: #4DA3FF;
+        }
+
+        .list-item-copy-btn {
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: #0F1117;
+            border: 1px solid #252A3A;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            font-size: 14px;
+            color: #9AA4BF;
+            flex-shrink: 0;
+        }
+
+        .list-item-copy-btn:hover {
+            background: #00E5C3;
+            border-color: #00E5C3;
+            color: white;
+            transform: scale(1.05);
+            box-shadow: 0 2px 8px rgba(0, 229, 195, 0.4);
+        }
+
+        .list-item-copy-btn:active {
+            transform: scale(0.95);
+        }
+
+        .list-item-copy-btn.copied {
+            background: #10b981;
+            border-color: #10b981;
+            color: white;
+        }
+
+        .list-item-info {
+            flex: 1;
+            cursor: pointer;
+        }
+
+        .list-item-name {
+            color: #E6EAF2;
+            font-weight: 500;
+            font-size: 14px;
+            margin-bottom: 4px;
+        }
+
+        .list-item-path {
+            color: #9AA4BF;
+            font-size: 12px;
+            font-family: 'Courier New', monospace;
+        }
+
+        .list-item-badge {
+            padding: 4px 10px;
+            border-radius: 6px;
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            border: 1px solid;
+            flex-shrink: 0;
+        }
+
+        /* Scrollbar Styling */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: #161A23;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #252A3A;
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: #4DA3FF;
+        }
+
+        /* Field Metadata Table */
+        #tab-fields table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 16px;
+        }
+
+        #tab-fields th,
+        #tab-fields td {
+            border: 1px solid #252A3A;
+            padding: 8px;
+            font-size: 12px;
+            color: #E6EAF2;
+        }
+
+        #tab-fields th {
+            background: #161A23;
+            font-weight: 600;
+        }
+
+        #tab-fields input,
+        #tab-fields select {
+            width: 100%;
+            background: #0F1117;
+            color: #E6EAF2;
+            border: 1px solid #252A3A;
+            padding: 6px;
+            font-size: 12px;
+            border-radius: 4px;
+        }
+
+        .meta-tab {
+            display: none;
+        }
+
+        .meta-tab.active {
+            display: block;
+        }
+
+        .meta-tab input,
+        .meta-tab textarea,
+        .meta-tab select {
+            width: 100%;
+            background: #161A23;
+            color: #E6EAF2;
+            border: 1px solid #252A3A;
+            padding: 10px;
+            font-size: 14px;
+            border-radius: 6px;
+            margin-bottom: 16px;
+            font-family: 'Inter', sans-serif;
+        }
+
+        .meta-tab textarea {
+            min-height: 100px;
+            resize: vertical;
+        }
+
+        .tab-buttons {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 24px;
+            border-bottom: 2px solid #252A3A;
+            padding-bottom: 12px;
+        }
+
+        .tab-btn {
+            padding: 10px 20px;
+            background: #161A23;
+            color: #9AA4BF;
+            border: 1px solid #252A3A;
+            border-radius: 6px 6px 0 0;
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: 500;
+            transition: all 0.2s;
+        }
+
+        .tab-btn.active {
+            background: #4DA3FF;
+            color: white;
+            border-color: #4DA3FF;
+        }
+
+        .tab-btn:hover {
+            background: #252A3A;
+            color: #E6EAF2;
+        }
+
+        .add-field-btn-container {
+            display: flex;
+            justify-content: flex-end;
+            margin-bottom: 16px;
+        }
+
+        .btn-add-field {
+            padding: 8px 16px;
+            background: linear-gradient(135deg, #00E5C3 0%, #059669 100%);
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 12px;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            transition: all 0.2s;
+        }
+
+        .btn-add-field:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(0, 229, 195, 0.4);
+        }
+
+        .field-row-actions {
+            display: flex;
+            gap: 4px;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .btn-delete-row {
+            width: 28px;
+            height: 28px;
+            background: #dc2626;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+        }
+
+        .btn-delete-row:hover {
+            background: #b91c1c;
+            transform: scale(1.1);
+        }
+
+        @media (max-width: 768px) {
+            .header {
+                padding: 24px;
+            }
+
+            .controls {
+                padding: 16px 24px;
+                flex-direction: column;
+            }
+
+            .tree-container {
+                padding: 24px;
+            }
+
+            .stats {
+                padding: 24px;
+                grid-template-columns: 1fr;
+            }
+
+            .search-box {
+                width: 100%;
+            }
+
+            .modal {
+                width: 95%;
+                max-height: 90vh;
+            }
+
+            .modal-header {
+                padding: 20px;
+            }
+
+            .modal-body {
+                padding: 20px;
+            }
+
+            .metadata-inline {
+                margin-left: 20px;
+            }
+
+            .metadata-row {
+                grid-template-columns: 1fr;
+                gap: 4px;
+            }
+        }
+        /* ===== HEADER LEFT COLUMN ===== */
+        .header-left-column {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            max-width: 65%;
+        }
+
+        /* ===== PHYSICAL STORAGE MAPPING ===== */
+        .storage-mapping {
+            padding: 14px 18px;
+            background: #161A23;
+            border: 1px solid #252A3A;
+            border-left: 4px solid #00E5C3;
+            border-radius: 10px;
+            font-size: 13px;
+        }
+
+        .storage-title {
+            color: #00E5C3;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        .storage-tree {
+            font-family: 'Courier New', monospace;
+            color: #E6EAF2;
+            line-height: 1.6;
+        }
+
+        .storage-note {
+            margin-top: 8px;
+            color: #9AA4BF;
+            font-size: 12px;
+        }
+        /* ===== STORAGE SHOULD SCROLL (NOT STICKY) ===== */
+        .storage-wrapper {
+            padding: 24px 48px;
+            background: #0F1117;
+            border-bottom: 1px solid #252A3A;
+        }
+
+
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+                <div class="header-left-column">
+
+                <!-- TITLE ROW -->
+                <div class="header-left">
+                    <div class="header-icon">🗄️</div>
+                    <div class="header-text">
+                        <h1>Database Hierarchy Explorer</h1>
+                        <p>Enterprise MES & SAP Database Structure Visualization</p>
+                    </div>
+                </div>
+
+
+        </div>
+        <div class="stats">
+            <div class="stat-item" onclick="showCategoryList('main-database')">
+                <div class="stat-value" id="dbCount">0</div>
+                <div class="stat-label">Main Databases</div>
+            </div>
+            <div class="stat-item" onclick="showCategoryList('sub-database')">
+                <div class="stat-value" id="subDbCount">0</div>
+                <div class="stat-label">Sub Databases</div>
+            </div>
+            <div class="stat-item" onclick="showCategoryList('schema')">
+                <div class="stat-value" id="schemaCount">0</div>
+                <div class="stat-label">Schemas</div>
+            </div>
+            <div class="stat-item" onclick="showCategoryList('table')">
+                <div class="stat-value" id="tableCount">0</div>
+                <div class="stat-label">Tables</div>
+            </div>
+        </div>
+
+        </div>
+            <!-- PHYSICAL STORAGE MAPPING (BELOW TITLE) -->
+            <div class="storage-mapping">
+                <div class="storage-title">
+                    📦 Physical Storage Mapping (Amazon S3)
+                </div>
+
+                <div class="storage-tree">
+                    s3://algo8/
+                    <br> ├── BTP
+                    <br> │   ├── bronze
+                    <br> │   │   └── manufacturing
+                    <br> │   │       ├── mes
+                    <br> │   │       └── sap
+                    <br> │   ├── silver
+                    <br> │   └── gold
+                    <br> └── query-results
+                </div>
+
+                <div class="storage-note">
+                    ⚠️ This section is <b>read-only</b> and for <b>data engineers team</b>.
+                </div>
+            </div>
+
+
+        <div class="controls">
+            <button class="btn btn-primary" onclick="expandAll()">
+                <span>📂</span>
+                <span>Expand All</span>
+            </button>
+            <button class="btn btn-secondary" onclick="collapseAll()">
+                <span>📁</span>
+                <span>Collapse All</span>
+            </button>
+            <input type="text" class="search-box" id="searchBox" placeholder="Search databases, schemas, or tables..." onkeyup="searchTree()">
+        </div>
+
+        <div class="search-results" id="searchResults">
+            <div class="search-results-header" id="searchResultsHeader"></div>
+            <div id="searchResultsList"></div>
+        </div>
+
+        <div class="tree-container">
+            <ul class="tree" id="treeRoot">
+                <!-- Tree structure will be generated by JavaScript -->
+            </ul>
+        </div>
+
+    </div>
+
+    <!-- Path Tooltip -->
+    <div class="path-tooltip" id="pathTooltip">
+        <div class="path-tooltip-header">Full Path</div>
+        <div class="path-tooltip-content" id="pathTooltipContent"></div>
+    </div>
+
+    <!-- Copy Notification -->
+    <div class="copy-notification" id="copyNotification">
+        <span>✓</span>
+        <span>Path copied to clipboard!</span>
+    </div>
+
+    <!-- Modal for Category List -->
+    <div class="modal-overlay" id="modalOverlay" onclick="closeModal(event)">
+        <div class="modal" onclick="event.stopPropagation()">
+            <div class="modal-header">
+                <div class="modal-title" id="modalTitle">
+                    <span id="modalIcon"></span>
+                    <span id="modalTitleText"></span>
+                </div>
+                <button class="modal-close" onclick="closeModal()">×</button>
+            </div>
+            <div class="modal-body" id="modalBody">
+                <!-- List items will be generated here -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Metadata Edit Modal -->
+    <div class="modal-overlay" id="metaOverlay" onclick="closeMetaOverlay(event)">
+        <div class="modal" onclick="event.stopPropagation()">
+            <div class="modal-header">
+                <div class="modal-title">
+                    <span>📝</span>
+                    <span>Table Metadata</span>
+                </div>
+                <button class="modal-close" onclick="closeMeta()">×</button>
+            </div>
+            <div class="modal-body">
+                <!-- TAB HEADERS -->
+                <div class="tab-buttons">
+                    <button class="tab-btn active" onclick="switchMetaTab('machine')">🖥 Machine</button>
+                    <button class="tab-btn" onclick="switchMetaTab('table')">📊 Table</button>
+                    <button class="tab-btn" onclick="switchMetaTab('fields')">🧩 Fields</button>
+                </div>
+
+                <!-- MACHINE TAB -->
+                <div id="tab-machine" class="meta-tab active">
+                    <input id="m_machineName" placeholder="Machine Name" class="search-box">
+                    <input id="m_location" placeholder="Plant / Location" class="search-box">
+                    <input id="m_owner" placeholder="Owner" class="search-box">
+                    <input id="m_sourceType" placeholder="Source Type (PLC / MES / ERP)" class="search-box">
+                    <input id="m_refresh" placeholder="Refresh Frequency" class="search-box">
+                </div>
+
+                <!-- TABLE TAB -->
+                <div id="tab-table" class="meta-tab">
+                    <input id="t_db" placeholder="Database Name" class="search-box" readonly>
+                    <input id="t_schema" placeholder="Schema Name" class="search-box" readonly>
+                    <input id="t_table" placeholder="Table Name" class="search-box" readonly>
+                    <textarea id="t_description" placeholder="Description" class="search-box"></textarea>
+                    <input id="t_users" placeholder="Table Users (comma separated)" class="search-box">
+                </div>
+
+                <!-- FIELDS TAB -->
+                <div id="tab-fields" class="meta-tab">
+                    <div class="add-field-btn-container">
+                        <button class="btn-add-field" onclick="addEmptyFieldRow()">
+                            <span>➕</span>
+                            <span>Add New Field</span>
+                        </button>
+                    </div>
+                    <div style="overflow-x: auto;">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Field</th>
+                                    <th>Type</th>
+                                    <th>Meaning</th>
+                                    <th>Nullable</th>
+                                    <th>Value</th>
+                                    <th style="width: 60px;">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="fieldMetaBody">
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <button class="btn btn-primary" onclick="saveMetadata()" style="margin-top: 20px;">💾 Save Metadata</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let metadataLog = {};
+        let currentMetaTable = "";
+
+        const GITHUB_USER = "KunalAlgo8";
+        const REPO_NAME = "new-database-hierarchy";
+        const FILE_PATH = "metadata-log.json";
+        const BRANCH = "main";
+
+        let searchResults = [];
+        let tooltip = document.getElementById('pathTooltip');
+        let tooltipContent = document.getElementById('pathTooltipContent');
+        let copyNotification = document.getElementById('copyNotification');
+        let allItems = [];
+
+        let databaseStructure = null;
+
+        async function loadDatabaseFromJSON() {
+            try {
+                const response = await fetch("database_log.json");
+                if (!response.ok) {
+                    throw new Error("Failed to load database_log.json");
+                }
+        
+                databaseStructure = await response.json();
+        
+                initializeTree();
+                initializeTooltips();
+                calculateCountsFromData(databaseStructure);
+        
+            } catch (error) {
+                console.error("Error loading database JSON:", error);
+        
+                document.getElementById("treeRoot").innerHTML =
+                    "<li class='no-results'>Failed to load database data</li>";
+            }
+        }
+
+        function calculateCountsFromData(root) {
+            const counts = {
+                "main-database": 0,
+                "sub-database": 0,
+                "schema": 0,
+                "table": 0
+            };
+        
+            function traverse(node) {
+                if (!node) return;
+        
+                if (node.type && counts.hasOwnProperty(node.type)) {
+                    counts[node.type]++;
+                }
+        
+                if (node.children && Array.isArray(node.children)) {
+                    node.children.forEach(child => traverse(child));
+                }
+            }
+        
+            traverse(root);
+        
+            document.getElementById("dbCount").textContent = counts["main-database"];
+            document.getElementById("subDbCount").textContent = counts["sub-database"];
+            document.getElementById("schemaCount").textContent = counts["schema"];
+            document.getElementById("tableCount").textContent = counts["table"];
+        }
+
+            
+        function getIconForType(type) {
+            const icons = {
+                'main-database': '💾',
+                'sub-database': '🗃️',
+                'schema': '📂',
+                'table': '📊'
+            };
+            return icons[type] || '📄';
+        }
+
+        function getBadgeForType(type) {
+            const badges = {
+                'main-database': 'Main Database',
+                'sub-database': 'Sub Database',
+                'schema': 'Schema',
+                'table': 'Table'
+            };
+            return badges[type] || '';
+        }
+
+        function collectAllItems(node, path = []) {
+            if (!node.type) return;
+            
+            const currentPath = [...path, node.name];
+            allItems.push({
+                name: node.name,
+                type: node.type,
+                path: currentPath
+            });
+
+            if (node.children) {
+                node.children.forEach(child => collectAllItems(child, currentPath));
+            }
+        }
+
+        function copyListItemPath(path, button) {
+            const formattedPath = '["' + path.join('/') + '"]';
+            
+            navigator.clipboard.writeText(formattedPath).then(() => {
+                showCopyNotification();
+                
+                if (button) {
+                    button.classList.add('copied');
+                    button.innerHTML = '✓';
+                    setTimeout(() => {
+                        button.classList.remove('copied');
+                        button.innerHTML = '📋';
+                    }, 2000);
+                }
+            }).catch(err => {
+                console.error('Failed to copy:', err);
+            });
+        }
+
+        function showCategoryList(category) {
+            const modalOverlay = document.getElementById('modalOverlay');
+            const modalTitle = document.getElementById('modalTitleText');
+            const modalIcon = document.getElementById('modalIcon');
+            const modalBody = document.getElementById('modalBody');
+
+            const filtered = allItems.filter(item => item.type === category);
+            
+            const titles = {
+                'main-database': 'Main Databases',
+                'sub-database': 'Sub Databases',
+                'schema': 'Schemas',
+                'table': 'Tables'
+            };
+
+            modalIcon.textContent = getIconForType(category);
+            modalTitle.textContent = titles[category];
+            modalBody.innerHTML = '';
+
+            if (filtered.length === 0) {
+                modalBody.innerHTML = '<div class="no-results">No items found in this category</div>';
+            } else {
+                filtered.forEach(item => {
+                    const listItem = document.createElement('div');
+                    listItem.className = 'list-item';
+
+                    if (item.type === 'table') {
+                        const copyBtn = document.createElement('button');
+                        copyBtn.className = 'list-item-copy-btn';
+                        copyBtn.innerHTML = '📋';
+                        copyBtn.title = 'Copy path';
+                        copyBtn.onclick = (e) => {
+                            e.stopPropagation();
+                            copyListItemPath(item.path, copyBtn);
+                        };
+                        listItem.appendChild(copyBtn);
+                    }
+
+                    const info = document.createElement('div');
+                    info.className = 'list-item-info';
+                    info.onclick = () => {
+                        closeModal();
+                        navigateToItem(item);
+                    };
+
+                    const name = document.createElement('div');
+                    name.className = 'list-item-name';
+                    name.textContent = item.name;
+
+                    const pathDiv = document.createElement('div');
+                    pathDiv.className = 'list-item-path';
+                    pathDiv.textContent = '["' + item.path.join('/') + '"]';
+
+                    info.appendChild(name);
+                    info.appendChild(pathDiv);
+
+                    const badge = document.createElement('div');
+                    badge.className = `list-item-badge badge-${item.type}`;
+                    badge.textContent = getBadgeForType(item.type);
+
+                    listItem.appendChild(info);
+                    listItem.appendChild(badge);
+                    modalBody.appendChild(listItem);
+                });
+            }
+
+            modalOverlay.classList.add('show');
+        }
+
+        function closeModal(event) {
+            if (event && event.target !== document.getElementById('modalOverlay')) {
+                return;
+            }
+            document.getElementById('modalOverlay').classList.remove('show');
+        }
+
+        function navigateToItem(item) {
+            const allTreeItems = document.querySelectorAll('.tree-item');
+            let targetElement = null;
+
+            allTreeItems.forEach(treeItem => {
+                const path = getNodePath(treeItem);
+                if (JSON.stringify(path) === JSON.stringify(item.path)) {
+                    targetElement = treeItem;
+                }
+            });
+
+            if (targetElement) {
+                document.querySelectorAll('.tree-content').forEach(el => {
+                    el.classList.remove('search-match');
+                });
+
+                const allChildren = document.querySelectorAll('.children');
+                allChildren.forEach(child => child.classList.remove('show'));
+                
+                const allToggles = document.querySelectorAll('.toggle-icon');
+                allToggles.forEach(toggle => toggle.classList.remove('expanded'));
+
+                expandToNode(targetElement);
+                
+                setTimeout(() => {
+                    scrollToElement(targetElement);
+                }, 100);
+            }
+        }
+
+        function createTreeNode(node, isRoot = false) {
+            const li = document.createElement('li');
+            li.className = 'tree-item';
+
+            const div = document.createElement('div');
+            div.className = 'tree-content';
+            
+            if (!isRoot && node.type === 'table') {
+                const copyBtn = document.createElement('span');
+                copyBtn.className = 'copy-btn';
+                copyBtn.innerHTML = '📋';
+                copyBtn.title = 'Copy path';
+                copyBtn.onclick = (e) => {
+                    e.stopPropagation();
+                    copyPathToClipboard(li);
+                };
+                div.appendChild(copyBtn);
+
+                const metaBtn = document.createElement('span');
+                metaBtn.className = 'copy-btn';
+                metaBtn.innerHTML = '📝';
+                metaBtn.title = 'Edit metadata';
+                metaBtn.onclick = (e) => {
+                    e.stopPropagation();
+                    openMetaForTable(li);
+                };
+                div.appendChild(metaBtn);
+
+                const viewBtn = document.createElement('span');
+                viewBtn.className = 'copy-btn';
+                viewBtn.innerHTML = '👁️';
+                viewBtn.title = 'View metadata';
+                viewBtn.style.display = 'none';
+                viewBtn.onclick = (e) => {
+                    e.stopPropagation();
+                    toggleMetadataView(li, viewBtn);
+                };
+                div.appendChild(viewBtn);
+
+                li._viewBtn = viewBtn;
+            }
+
+            const toggleIcon = document.createElement('span');
+            toggleIcon.className = 'toggle-icon';
+            if (node.children && node.children.length > 0) {
+                toggleIcon.textContent = '▶';
+            }
+            div.appendChild(toggleIcon);
+
+            const icon = document.createElement('span');
+            icon.className = 'icon';
+            icon.textContent = isRoot ? '🗄️' : getIconForType(node.type);
+            div.appendChild(icon);
+
+            const label = document.createElement('span');
+            label.className = 'label';
+            label.textContent = node.name;
+            div.appendChild(label);
+
+            if (!isRoot && node.type) {
+                const badge = document.createElement('span');
+                badge.className = `type-badge badge-${node.type}`;
+                badge.textContent = getBadgeForType(node.type);
+                div.appendChild(badge);
+            }
+
+            div.onclick = (e) => {
+                if (e.target === div || e.target === toggleIcon || e.target === icon || e.target === label) {
+                    toggleNode(div);
+                }
+            };
+
+            li.appendChild(div);
+
+            if (!isRoot && node.type === 'table') {
+                const metadataDiv = document.createElement('div');
+                metadataDiv.className = 'metadata-inline';
+                metadataDiv.id = 'metadata-' + getNodePath(li).join('-');
+                li.appendChild(metadataDiv);
+                li._metadataDiv = metadataDiv;
+            }
+
+            if (node.children && node.children.length > 0) {
+                const ul = document.createElement('ul');
+                ul.className = 'children';
+                
+                node.children.forEach(child => {
+                    ul.appendChild(createTreeNode(child));
+                });
+                
+                li.appendChild(ul);
+            }
+
+            return li;
+        }
+
+        function toggleMetadataView(treeItem, viewBtn) {
+            const metadataDiv = treeItem._metadataDiv;
+            if (!metadataDiv) return;
+
+            const path = getNodePath(treeItem).join(".");
+            const meta = metadataLog[path];
+
+            if (!meta) {
+                alert("No metadata found for this table.");
+                return;
+            }
+
+            if (metadataDiv.classList.contains('show')) {
+                metadataDiv.classList.remove('show');
+                viewBtn.classList.remove('viewing');
+            } else {
+                // Close all other open metadata views
+                document.querySelectorAll('.metadata-inline.show').forEach(div => {
+                    div.classList.remove('show');
+                });
+                document.querySelectorAll('.copy-btn.viewing').forEach(btn => {
+                    btn.classList.remove('viewing');
+                });
+
+                // Render and show this metadata
+                renderInlineMetadata(metadataDiv, meta, path);
+                metadataDiv.classList.add('show');
+                viewBtn.classList.add('viewing');
+            }
+        }
+
+        function renderInlineMetadata(container, meta, path) {
+            const fieldsTable = meta.fields && meta.fields.length > 0 
+                ? `<table class="metadata-table">
+                    <thead>
+                        <tr>
+                            <th>Field</th>
+                            <th>Type</th>
+                            <th>Meaning</th>
+                            <th>Nullable</th>
+                            <th>Value</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${meta.fields.map(f => `
+                            <tr>
+                                <td>${f.field || "-"}</td>
+                                <td>${f.datatype || "-"}</td>
+                                <td>${f.meaning || "-"}</td>
+                                <td>${f.nullable || "-"}</td>
+                                <td>${f.value || "-"}</td>
+                            </tr>
+                        `).join("")}
+                    </tbody>
+                </table>`
+                : '<p style="color: #9AA4BF; font-style: italic;">No fields defined</p>';
+
+            container.innerHTML = `
+                <div class="metadata-header">
+                    <span class="metadata-header-icon">📋</span>
+                    <span class="metadata-header-title">Metadata Details</span>
+                </div>
+
+                <div class="metadata-section">
+                    <div class="metadata-section-title">
+                        <span class="metadata-section-icon">🖥</span>
+                        <span>Machine Information</span>
+                    </div>
+                    <div class="metadata-row">
+                        <div class="metadata-label">Machine Name:</div>
+                        <div class="metadata-value">${meta.machine?.name || "-"}</div>
+                    </div>
+                    <div class="metadata-row">
+                        <div class="metadata-label">Plant/Location:</div>
+                        <div class="metadata-value">${meta.machine?.location || "-"}</div>
+                    </div>
+                    <div class="metadata-row">
+                        <div class="metadata-label">Owner:</div>
+                        <div class="metadata-value">${meta.machine?.owner || "-"}</div>
+                    </div>
+                    <div class="metadata-row">
+                        <div class="metadata-label">Source Type:</div>
+                        <div class="metadata-value">${meta.machine?.sourceType || "-"}</div>
+                    </div>
+                    <div class="metadata-row">
+                        <div class="metadata-label">Refresh Frequency:</div>
+                        <div class="metadata-value">${meta.machine?.refresh || "-"}</div>
+                    </div>
+                </div>
+
+                <div class="metadata-section">
+                    <div class="metadata-section-title">
+                        <span class="metadata-section-icon">📊</span>
+                        <span>Table Information</span>
+                    </div>
+                    <div class="metadata-row">
+                        <div class="metadata-label">Database:</div>
+                        <div class="metadata-value">${meta.table?.database || "-"}</div>
+                    </div>
+                    <div class="metadata-row">
+                        <div class="metadata-label">Schema:</div>
+                        <div class="metadata-value">${meta.table?.schema || "-"}</div>
+                    </div>
+                    <div class="metadata-row">
+                        <div class="metadata-label">Table:</div>
+                        <div class="metadata-value">${meta.table?.table || "-"}</div>
+                    </div>
+                    <div class="metadata-row">
+                        <div class="metadata-label">Description:</div>
+                        <div class="metadata-value">${meta.table?.description || "-"}</div>
+                    </div>
+                    <div class="metadata-row">
+                        <div class="metadata-label">Table Users:</div>
+                        <div class="metadata-value">${meta.table?.users || "-"}</div>
+                    </div>
+                </div>
+
+                <div class="metadata-section">
+                    <div class="metadata-section-title">
+                        <span class="metadata-section-icon">🧩</span>
+                        <span>Field Information</span>
+                    </div>
+                    ${fieldsTable}
+                </div>
+
+                <div class="metadata-footer">
+                    <strong>Last Updated:</strong> ${meta.updated_at || "N/A"}
+                </div>
+            `;
+        }
+
+        function initializeTree() {
+            if (!databaseStructure) return;
+        
+            const treeRoot = document.getElementById('treeRoot');
+            treeRoot.innerHTML = '';
+            treeRoot.appendChild(createTreeNode(databaseStructure, true));
+        
+            allItems = [];
+            databaseStructure.children?.forEach(child =>
+                collectAllItems(child)
+            );
+        }
+
+
+        function toggleNode(element) {
+            const parent = element.parentElement;
+            const children = parent.querySelector('.children');
+            const toggleIcon = element.querySelector('.toggle-icon');
+            
+            if (children) {
+                children.classList.toggle('show');
+                if (toggleIcon) {
+                    toggleIcon.classList.toggle('expanded');
+                }
+            }
+            
+            element.classList.toggle('active');
+        }
+
+        function expandAll() {
+            const allChildren = document.querySelectorAll('.children');
+            const allToggles = document.querySelectorAll('.toggle-icon');
+            
+            allChildren.forEach(child => {
+                child.classList.add('show');
+            });
+            
+            allToggles.forEach(toggle => {
+                if (toggle.textContent.trim() !== '') {
+                    toggle.classList.add('expanded');
+                }
+            });
+        }
+
+        function collapseAll() {
+            const allChildren = document.querySelectorAll('.children');
+            const allToggles = document.querySelectorAll('.toggle-icon');
+            const allContents = document.querySelectorAll('.tree-content');
+            const allMetadata = document.querySelectorAll('.metadata-inline');
+            
+            allChildren.forEach(child => {
+                child.classList.remove('show');
+            });
+            
+            allToggles.forEach(toggle => {
+                toggle.classList.remove('expanded');
+            });
+            
+            allContents.forEach(content => {
+                content.classList.remove('active');
+                content.classList.remove('search-match');
+            });
+
+            allMetadata.forEach(meta => {
+                meta.classList.remove('show');
+            });
+
+            document.querySelectorAll('.copy-btn.viewing').forEach(btn => {
+                btn.classList.remove('viewing');
+            });
+
+            document.getElementById('searchResults').classList.remove('show');
+        }
+
+        function getNodePath(element) {
+            let path = [];
+            let current = element;
+            
+            while (current) {
+                const label = current.querySelector(':scope > .tree-content > .label');
+                if (label && label.textContent !== 'Databases' && label.textContent !== 'No schemas/tables defined') {
+                    path.unshift(label.textContent);
+                }
+                
+                current = current.parentElement?.closest('.tree-item');
+            }
+            
+            return path;
+        }
+
+        function formatPathWithQuotes(pathArray) {
+            if (pathArray.length === 0) return '[]';
+            return '["' + pathArray.join('/') + '"]';
+        }
+
+        function copyPathToClipboard(element) {
+            const path = getNodePath(element);
+            const formattedPath = formatPathWithQuotes(path);
+            
+            navigator.clipboard.writeText(formattedPath).then(() => {
+                showCopyNotification();
+                
+                const copyBtn = element.querySelector('.copy-btn');
+                if (copyBtn) {
+                    copyBtn.classList.add('copied');
+                    copyBtn.innerHTML = '✓';
+                    setTimeout(() => {
+                        copyBtn.classList.remove('copied');
+                        copyBtn.innerHTML = '📋';
+                    }, 2000);
+                }
+            }).catch(err => {
+                console.error('Failed to copy:', err);
+            });
+        }
+
+        function showCopyNotification() {
+            copyNotification.classList.add('show');
+            setTimeout(() => {
+                copyNotification.classList.remove('show');
+            }, 2000);
+        }
+
+        function expandToNode(element) {
+            let current = element.parentElement;
+            
+            while (current) {
+                if (current.classList.contains('children')) {
+                    current.classList.add('show');
+                    
+                    const prevSibling = current.previousElementSibling;
+                    if (prevSibling && prevSibling.classList.contains('tree-content')) {
+                        const toggle = prevSibling.querySelector('.toggle-icon');
+                        if (toggle && toggle.textContent.trim() !== '') {
+                            toggle.classList.add('expanded');
+                        }
+                    }
+                }
+                current = current.parentElement;
+            }
+        }
+
+        function scrollToElement(element) {
+            const treeContent = element.querySelector('.tree-content');
+            if (treeContent) {
+                treeContent.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                
+                treeContent.classList.add('search-match');
+                setTimeout(() => {
+                    treeContent.classList.remove('search-match');
+                }, 2000);
+            }
+        }
+
+        function navigateToResult(index) {
+            const result = searchResults[index];
+            if (result && result.element) {
+                document.querySelectorAll('.tree-content').forEach(el => {
+                    el.classList.remove('search-match');
+                });
+
+                const allChildren = document.querySelectorAll('.children');
+                allChildren.forEach(child => child.classList.remove('show'));
+                
+                const allToggles = document.querySelectorAll('.toggle-icon');
+                allToggles.forEach(toggle => toggle.classList.remove('expanded'));
+
+                expandToNode(result.element);
+                
+                setTimeout(() => {
+                    scrollToElement(result.element);
+                }, 100);
+            }
+        }
+
+        function searchTree() {
+            const searchTerm = document.getElementById('searchBox').value.toLowerCase().trim();
+            const allItems = document.querySelectorAll('.tree-item');
+            const searchResultsDiv = document.getElementById('searchResults');
+            const searchResultsList = document.getElementById('searchResultsList');
+            const searchResultsHeader = document.getElementById('searchResultsHeader');
+            
+            searchResults = [];
+
+            document.querySelectorAll('.tree-content').forEach(el => {
+                el.classList.remove('search-match');
+            });
+
+            if (searchTerm === '') {
+                searchResultsDiv.classList.remove('show');
+                collapseAll();
+                return;
+            }
+
+            allItems.forEach(item => {
+                const label = item.querySelector(':scope > .tree-content > .label');
+                if (label) {
+                    const text = label.textContent.toLowerCase();
+                    const parentLabel = label.textContent;
+                    
+                    if (parentLabel === 'Databases' || parentLabel === 'No schemas/tables defined') {
+                        return;
+                    }
+                    
+                    if (text.includes(searchTerm)) {
+                        const path = getNodePath(item);
+                        searchResults.push({
+                            name: parentLabel,
+                            path: path,
+                            element: item,
+                            text: text
+                        });
+                    }
+                }
+            });
+
+            if (searchResults.length > 0) {
+                searchResultsHeader.textContent = `Found ${searchResults.length} result${searchResults.length > 1 ? 's' : ''} for "${searchTerm}"`;
+                searchResultsList.innerHTML = '';
+                
+                searchResults.forEach((result, index) => {
+                    const resultItem = document.createElement('div');
+                    resultItem.className = 'search-result-item';
+                    resultItem.onclick = () => navigateToResult(index);
+                    
+                    const nameDiv = document.createElement('div');
+                    nameDiv.className = 'search-result-name';
+                    
+                    const regex = new RegExp(`(${searchTerm})`, 'gi');
+                    nameDiv.innerHTML = result.name.replace(regex, '<span class="highlight">$1</span>');
+                    
+                    const pathDiv = document.createElement('div');
+                    pathDiv.className = 'search-result-path';
+                    pathDiv.innerHTML = result.path.join(' <span class="path-separator">▸</span> ');
+                    
+                    resultItem.appendChild(nameDiv);
+                    resultItem.appendChild(pathDiv);
+                    searchResultsList.appendChild(resultItem);
+                });
+                
+                searchResultsDiv.classList.add('show');
+                
+                if (searchResults.length > 0) {
+                    navigateToResult(0);
+                }
+            } else {
+                searchResultsHeader.textContent = `No results found for "${searchTerm}"`;
+                searchResultsList.innerHTML = '';
+                searchResultsDiv.classList.add('show');
+            }
+        }
+
+        function showTooltip(event, element) {
+            const treeItem = element.closest('.tree-item');
+            if (!treeItem) return;
+
+            const path = getNodePath(treeItem);
+            if (path.length === 0) return;
+
+            tooltipContent.textContent = formatPathWithQuotes(path);
+            tooltip.classList.add('show');
+            
+            positionTooltip(event);
+        }
+
+        function hideTooltip() {
+            tooltip.classList.remove('show');
+        }
+
+        function positionTooltip(event) {
+            const tooltipRect = tooltip.getBoundingClientRect();
+            const offset = 15;
+            
+            let left = event.clientX + offset;
+            let top = event.clientY + offset;
+            
+            if (left + tooltipRect.width > window.innerWidth) {
+                left = event.clientX - tooltipRect.width - offset;
+            }
+            
+            if (top + tooltipRect.height > window.innerHeight) {
+                top = event.clientY - tooltipRect.height - offset;
+            }
+            
+            tooltip.style.left = left + 'px';
+            tooltip.style.top = top + 'px';
+        }
+
+        function initializeTooltips() {
+            const allTreeContents = document.querySelectorAll('.tree-content');
+            
+            allTreeContents.forEach(content => {
+                content.addEventListener('mouseenter', (e) => {
+                    if (!e.target.classList.contains('copy-btn')) {
+                        showTooltip(e, content);
+                    }
+                });
+                content.addEventListener('mouseleave', hideTooltip);
+                content.addEventListener('mousemove', positionTooltip);
+            });
+        }
+
+        // Metadata Functions
+        function switchMetaTab(tab) {
+            document.querySelectorAll('.meta-tab').forEach(t => {
+                t.classList.remove('active');
+            });
+            
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+
+            const el = document.getElementById('tab-' + tab);
+            if (el) {
+                el.classList.add('active');
+            }
+
+            event.target.classList.add('active');
+        }
+
+        function openMetaForTable(treeItem) {
+            const pathArr = getNodePath(treeItem);
+            const key = pathArr.join(".");
+            currentMetaTable = key;
+
+            // Auto-fill table info
+            document.getElementById("t_db").value = pathArr[0] || "";
+            document.getElementById("t_schema").value = pathArr[pathArr.length-2] || "";
+            document.getElementById("t_table").value = pathArr[pathArr.length-1] || "";
+
+            // Clear all user input fields
+            document.querySelectorAll('#metaOverlay input:not([readonly]), #metaOverlay textarea, #metaOverlay select')
+                .forEach(el => { el.value = ""; });
+
+            const meta = metadataLog[key];
+            if (meta) {
+                // Machine fields
+                document.getElementById("m_machineName").value = meta.machine?.name || "";
+                document.getElementById("m_location").value = meta.machine?.location || "";
+                document.getElementById("m_owner").value = meta.machine?.owner || "";
+                document.getElementById("m_sourceType").value = meta.machine?.sourceType || "";
+                document.getElementById("m_refresh").value = meta.machine?.refresh || "";
+
+                // Table fields
+                document.getElementById("t_description").value = meta.table?.description || "";
+                document.getElementById("t_users").value = meta.table?.users || "";
+
+                renderFieldRows(meta.fields || []);
+            } else {
+                renderFieldRows([]);
+            }
+
+            switchMetaTab('machine');
+            document.getElementById("metaOverlay").classList.add("show");
+        }
+
+        function renderFieldRows(fields) {
+            const body = document.getElementById("fieldMetaBody");
+            body.innerHTML = "";
+
+            if (!fields.length) {
+                for (let i = 0; i < 5; i++) addEmptyFieldRow();
+            } else {
+                fields.forEach(f => addFieldRow(f));
+            }
+        }
+
+        function addEmptyFieldRow() {
+            addFieldRow({});
+        }
+
+        function addFieldRow(f) {
+            const body = document.getElementById("fieldMetaBody");
+
+            const tr = document.createElement("tr");
+            tr.innerHTML = `
+                <td><input value="${f.field || ""}"></td>
+                <td><input value="${f.datatype || ""}"></td>
+                <td><input value="${f.meaning || ""}"></td>
+                <td>
+                    <select>
+                        <option ${f.nullable==="No"?"selected":""}>No</option>
+                        <option ${f.nullable==="Yes"?"selected":""}>Yes</option>
+                    </select>
+                </td>
+                <td><input value="${f.value || ""}"></td>
+                <td class="field-row-actions">
+                    <button class="btn-delete-row" onclick="deleteFieldRow(this)" title="Delete row">🗑️</button>
+                </td>
+            `;
+            body.appendChild(tr);
+        }
+
+        function deleteFieldRow(button) {
+            const row = button.closest('tr');
+            if (row) {
+                row.remove();
+            }
+        }
+
+        function closeMeta() {
+            document.getElementById("metaOverlay").classList.remove("show");
+        }
+
+        function closeMetaOverlay(event) {
+            if (event && event.target !== document.getElementById('metaOverlay')) {
+                return;
+            }
+            closeMeta();
+        }
+
+        async function saveMetadata() {
+            const key = currentMetaTable;
+
+            const machine = {
+                name: document.getElementById("m_machineName").value,
+                location: document.getElementById("m_location").value,
+                owner: document.getElementById("m_owner").value,
+                sourceType: document.getElementById("m_sourceType").value,
+                refresh: document.getElementById("m_refresh").value
+            };
+
+            const table = {
+                database: document.getElementById("t_db").value,
+                schema: document.getElementById("t_schema").value,
+                table: document.getElementById("t_table").value,
+                description: document.getElementById("t_description").value,
+                users: document.getElementById("t_users").value
+            };
+
+            const fields = [];
+            document.querySelectorAll("#fieldMetaBody tr").forEach(tr => {
+                const inputs = tr.querySelectorAll("input");
+                const select = tr.querySelector("select");
+                if (inputs.length >= 3) {
+                    fields.push({
+                        field: inputs[0].value,
+                        datatype: inputs[1].value,
+                        meaning: inputs[2].value,
+                        nullable: select ? select.value : "No",
+                        value: inputs[3] ? inputs[3].value : ""
+                    });
+                }
+            });
+
+            metadataLog[key] = {
+                machine,
+                table,
+                fields,
+                updated_at: new Date().toLocaleString()
+            };
+
+            try {
+                await saveToGitHub(metadataLog);
+                alert("Metadata saved successfully ✅");
+                updateMetadataButtons();
+                closeMeta();
+            } catch (e) {
+                alert("Failed to save metadata ❌");
+                console.error(e);
+            }
+        }
+
+        async function saveToGitHub(data) {
+            const apiUrl = `https://api.github.com/repos/${GITHUB_USER}/${REPO_NAME}/contents/${FILE_PATH}`;
+
+            const token = prompt("Enter your GitHub token to save metadata:");
+            if (!token) throw new Error("Token missing");
+
+            let sha = null;
+
+            const existing = await fetch(apiUrl, {
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                    Accept: "application/vnd.github+json"
+                }
+            });
+
+            if (existing.ok) {
+                const j = await existing.json();
+                sha = j.sha;
+            }
+
+            const content = btoa(unescape(encodeURIComponent(JSON.stringify(data, null, 2))));
+
+            const res = await fetch(apiUrl, {
+                method: "PUT",
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                    Accept: "application/vnd.github+json",
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({
+                    message: `Update metadata for ${currentMetaTable}`,
+                    content: content,
+                    sha: sha,
+                    branch: BRANCH
+                })
+            });
+
+            if (!res.ok) {
+                const err = await res.text();
+                throw new Error(err);
+            }
+        }
+
+        async function loadMetadataLog() {
+            const url = `https://raw.githubusercontent.com/${GITHUB_USER}/${REPO_NAME}/${BRANCH}/${FILE_PATH}`;
+            try {
+                const res = await fetch(url);
+                metadataLog = await res.json();
+                setTimeout(updateMetadataButtons, 300);
+            } catch (e) {
+                console.warn("No metadata log found yet");
+                metadataLog = {};
+            }
+        }
+
+        function updateMetadataButtons() {
+            document.querySelectorAll('.tree-item').forEach(item => {
+                if (!item._viewBtn) return;
+
+                const path = getNodePath(item).join(".");
+
+                if (metadataLog[path]) {
+                    item._viewBtn.style.display = "flex";
+                } else {
+                    item._viewBtn.style.display = "none";
+                }
+            });
+        }
+
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                closeModal();
+                closeMeta();
+                // Close all inline metadata views
+                document.querySelectorAll('.metadata-inline.show').forEach(div => {
+                    div.classList.remove('show');
+                });
+                document.querySelectorAll('.copy-btn.viewing').forEach(btn => {
+                    btn.classList.remove('viewing');
+                });
+            }
+            if ((e.ctrlKey || e.metaKey) && e.key === 'f') {
+                e.preventDefault();
+                document.getElementById('searchBox').focus();
+            }
+        });
+
+        document.addEventListener('DOMContentLoaded', () => {
+            initializeTooltips();
+            loadMetadataLog();
+            loadDatabaseFromJSON();
+        });
+
+    </script>
+</body>
+</html>
