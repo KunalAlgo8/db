@@ -1317,6 +1317,14 @@
 
         let databaseStructure = null;
 
+        
+        function getLatestDate(dates) {
+            if (!dates.length) return null;
+            return dates.reduce((latest, d) => {
+                return new Date(d) > new Date(latest) ? d : latest;
+            });
+        }
+
         async function loadDatabaseFromJSON() {
             try {
                 const response = await fetch("database_log.json");
@@ -1616,6 +1624,54 @@
                 lastFetchedBadge.className = 'last-fetched';
                 lastFetchedBadge.textContent = lastFetchedText;
                 div.appendChild(lastFetchedBadge);
+            }
+
+            // ===== ⏱ LAST FETCHED (SCHEMA FROM TABLES) =====
+            if (!isRoot && node.type === 'schema') {
+                const dates = [];
+
+                if (node.children) {
+                    node.children.forEach(child => {
+                        if (child.type === 'table' && child.lastFetched) {
+                            dates.push(child.lastFetched);
+                        }
+                    });
+                }
+
+                const latestSchemaDate = getLatestDate(dates);
+
+                if (latestSchemaDate) {
+                    const badge = document.createElement('span');
+                    badge.className = 'last-fetched';
+                    badge.textContent = `⏱ ${formatLastFetched(latestSchemaDate)}`;
+                    div.appendChild(badge);
+                }
+            }
+
+            // ===== ⏱ LAST FETCHED (SUB-DATABASE FROM SCHEMAS) =====
+            if (!isRoot && node.type === 'sub-database') {
+                const dates = [];
+
+                if (node.children) {
+                    node.children.forEach(schema => {
+                        if (schema.type === 'schema' && schema.children) {
+                            schema.children.forEach(table => {
+                                if (table.type === 'table' && table.lastFetched) {
+                                    dates.push(table.lastFetched);
+                                }
+                            });
+                        }
+                    });
+                }
+
+                const latestSubDbDate = getLatestDate(dates);
+
+                if (latestSubDbDate) {
+                    const badge = document.createElement('span');
+                    badge.className = 'last-fetched';
+                    badge.textContent = `⏱ ${formatLastFetched(latestSubDbDate)}`;
+                    div.appendChild(badge);
+                }
             }
 
 
@@ -2389,6 +2445,28 @@
 
             return counts;
         }
+
+        function getLatestDateFromTables(schemaNode) {
+            if (!schemaNode.children) return null;
+
+            const dates = schemaNode.children
+                .filter(c => c.type === "table" && c.lastFetched)
+                .map(c => c.lastFetched);
+
+            return getLatestDate(dates);
+        }
+
+        function getLatestDateFromSchemas(subDbNode) {
+            if (!subDbNode.children) return null;
+
+            const dates = subDbNode.children
+                .filter(c => c.type === "schema")
+                .map(schema => getLatestDateFromTables(schema))
+                .filter(Boolean);
+
+            return getLatestDate(dates);
+        }
+
 
 
     </script>
