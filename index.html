@@ -1605,11 +1605,14 @@
             label.className = 'label';
             label.textContent = node.name;
             div.appendChild(label);
-
+            
             // ===== ⏱ LAST FETCHED (TABLE ONLY) =====
             if (!isRoot && node.type === 'table') {
-                const lastFetchedText = node.lastFetched
-                    ? `⏱ ${formatLastFetched(node.lastFetched)}`
+                const pathArr = getNodePath(li);   // FULL PATH
+                const lastFetched = findLastFetchedByPath(databaseStructure, pathArr);
+
+                const lastFetchedText = lastFetched
+                    ? `⏱ ${formatLastFetched(lastFetched)}`
                     : '⏱ Never fetched';
 
                 const lastFetchedBadge = document.createElement('span');
@@ -1617,6 +1620,7 @@
                 lastFetchedBadge.textContent = lastFetchedText;
                 div.appendChild(lastFetchedBadge);
             }
+
 
             // ===== 🔢 COUNTS BADGE =====
             if (!isRoot && node.type !== 'table') {
@@ -2362,6 +2366,20 @@
             loadMetadataLog();
             loadDatabaseFromJSON();
         });
+
+        function findLastFetchedByPath(root, pathArray) {
+            let current = root;
+
+            for (let i = 0; i < pathArray.length; i++) {
+                if (!current.children) return null;
+
+                current = current.children.find(c => c.name === pathArray[i]);
+                if (!current) return null;
+            }
+
+            return current.lastFetched || null;
+        }
+
 
         function calculateNodeCounts(node) {
             let counts = {
